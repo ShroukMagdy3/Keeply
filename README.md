@@ -1,4 +1,4 @@
-💻 Document Management System - Frontend
+# 📁 Document Management System
 
 A modern and responsive frontend for the **Document Management System**, built with **React**, **TypeScript**, and **Tailwind CSS**. The application provides an intuitive interface for managing workspaces, folders, and documents with secure authentication and seamless file management.
 
