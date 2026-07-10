@@ -31,11 +31,12 @@ import toast from "react-hot-toast";
 
 interface Props {
   workspaceId: string;
+  onDocumentsChanged?: () => void;
 }
 
 const DEBOUNCE_DELAY = 500;
 
-export default function DocumentList({ workspaceId }: Props) {
+export default function DocumentList({ workspaceId, onDocumentsChanged }: Props) {
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [breadcrumb, setBreadcrumb] = useState<BreadcrumbItem[]>([]);
   const [items, setItems] = useState<DriveItem[]>([]);
@@ -122,7 +123,10 @@ export default function DocumentList({ workspaceId }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchName, searchType, workspaceId]);
 
-  const refresh = () => load(currentFolderId);
+  const refresh = () => {
+    load(currentFolderId);
+    onDocumentsChanged?.();
+  };
   const handleOpenFolder = (id: string) => setCurrentFolderId(id);
 
   const clearUploadStatusSoon = () => {
@@ -265,6 +269,7 @@ export default function DocumentList({ workspaceId }: Props) {
 
   const handleFileDelete = (id: string) => {
     setItems((prev) => prev.filter((i) => i._id !== id));
+    onDocumentsChanged?.();
   };
 
   const isBusy = uploadingFile || uploadingFolder;

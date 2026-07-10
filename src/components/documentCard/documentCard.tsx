@@ -82,15 +82,16 @@ export default function DocumentCard({ doc, onDelete, onMove }: { doc: Document;
     }
   };
 
+  const isPdf = doc.mimeType === "application/pdf";
+  const isAudio = doc.mimeType?.startsWith("audio/");
+
   const handleCardClick = () => {
     if (!doc.secureUrl) {
       toast.error("Preview is not available for this file");
       return;
     }
 
-    if (doc.resourceType === "pdf" || doc.mimeType === "application/pdf") {
-      openBlobPreview(doc.secureUrl, "application/pdf");
-    } else if (["image", "video", "audio", "raw"].includes(doc.resourceType)) {
+    if (isPdf || isAudio || ["image", "video"].includes(doc.resourceType)) {
       window.open(doc.secureUrl, "_blank", "noopener,noreferrer");
     } else {
       toast("Preview not available for this file type");
@@ -98,30 +99,26 @@ export default function DocumentCard({ doc, onDelete, onMove }: { doc: Document;
   };
 
   const getImageSrc = () => {
+    if (isPdf) return doc.previewUrl || "/images/default.jpg";
+    if (isAudio) return "/images/R.jpeg";
     switch (doc.resourceType) {
       case "image":
         return doc.secureUrl;
       case "video":
         return doc.previewUrl || "/images/video.jpg";
-      case "audio":
-        return "/images/R.jpeg";
-      case "pdf":
-        return doc.previewUrl || "/images/default.jpg";
       default:
         return doc.previewUrl || "/images/default.jpg";
     }
   };
 
   const previewIcon = () => {
+    if (isPdf) return <FileText size={18} />;
+    if (isAudio) return <Music2 size={18} />;
     switch (doc.resourceType) {
       case "image":
         return <Image size={18} />;
       case "video":
         return <Video size={18} />;
-      case "audio":
-        return <Music2 size={18} />;
-      case "pdf":
-        return <FileText size={18} />;
       default:
         return <File size={18} />;
     }

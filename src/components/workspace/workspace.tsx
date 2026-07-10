@@ -56,6 +56,18 @@ export default function WorkspaceProfile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Lightweight refresh used after document changes (upload/delete/move/etc.)
+  // inside the currently open workspace - keeps the "N items" counters on the
+  // workspace cards in sync without a full-page loading spinner.
+  const refreshWorkspaceCounts = async () => {
+    try {
+      const data = await listWorkspaces();
+      setWorkspaces(data?.workspaces!);
+    } catch {
+      // silent - background refresh, not critical
+    }
+  };
+
   const handleSelect = (id: string) => {
     setSelectedId(id);
     localStorage.setItem(LAST_WORKSPACE_KEY, id);
@@ -200,7 +212,9 @@ export default function WorkspaceProfile() {
                 <FolderOpen size={16} className="text-amber-400" />
                 <span>Open the workspace area below to browse folders, upload files, and manage your documents.</span>
               </div>
-              {selectedId && <DocumentList workspaceId={selectedId} />}
+              {selectedId && (
+                <DocumentList workspaceId={selectedId} onDocumentsChanged={refreshWorkspaceCounts} />
+              )}
             </div>
           </div>
         )}
