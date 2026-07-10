@@ -3,11 +3,9 @@ import { User, Key, Mail, Phone, IdCard } from "lucide-react";
 import AuthLayout from "../../layout/authLayout/authLayout";
 import type { RegisterFormData } from "./register.interface";
 import registerValidation from "./registerValidation";
-import axios from "axios";
+import { signUp } from "../../api/auth";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-
-const VITE_API_URL = import.meta.env.VITE_API_URL;
 
 export default function RegisterForm(): JSX.Element {
   const [inputs, setInputs] = useState<RegisterFormData>({
@@ -47,10 +45,9 @@ export default function RegisterForm(): JSX.Element {
 
     if (!isValid) return;
 
-    axios
-      .post(`${VITE_API_URL}/api/v1/users/signUp`, inputs)
+    signUp(inputs)
       .then((res) => {
-        if (res.data.message === "Created") {
+        if (res.message === "Created") {
           toast.success("Account created!", {
             style: {
               background: "#1F2937",

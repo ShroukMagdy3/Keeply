@@ -4,10 +4,8 @@ import AuthLayout from "../../layout/authLayout/authLayout";
 import type { signInFormData } from "./signin.interface";
 import signInvalidation from "./signInValidation";
 import toast from "react-hot-toast";
-import axios from "axios";
+import { signIn } from "../../api/auth";
 import { useNavigate } from "react-router-dom";
-
-const VITE_API_URL = import.meta.env.VITE_API_URL;
 
 export default function SignInForm() {
   const [inputs, setInputs] = useState<signInFormData>({
@@ -32,13 +30,13 @@ export default function SignInForm() {
     setErrors(validationErrors);
 
     if (isValid) {
-      axios
-        .post(`${VITE_API_URL}/api/v1/users/signIn`, inputs)
-        .then((res) => {
-          if (res.data.message === "success") {
+      signIn(inputs)
+        .then((data) => {
+          if (data.message === "success") {
             toast.success("Welcome To Keeply!");
-            localStorage.setItem("accessToken", res.data.tokens.accessToken);
-            setTimeout(() => navigate("/"), 2000);
+            localStorage.setItem("accessToken", data.tokens.accessToken);
+            window.dispatchEvent(new Event("auth-changed"));
+            navigate("/profile");
           }
         })
         .catch((err) => {

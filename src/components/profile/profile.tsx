@@ -1,36 +1,24 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
 import { Mail, Phone, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
 import { ClipLoader } from "react-spinners";
+import { getProfile, uploadProfileImage, type UserProfile } from "../../api/auth";
 
-type UserProfile = {
-  userName: string;
-  email: string;
-  phone: string;
-  nid: string;
-  image?: string | null;
-  createdAt: Date;
-};
-
-const VITE_API_URL = import.meta.env.VITE_API_URL;
 export default function Profile() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
 
-
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { data } = await axios.get(`${VITE_API_URL}/api/v1/users/getProfile`, {
-          headers: { Authorization: `bearer ${localStorage.getItem("accessToken")}` },
-        });
+        const data = await getProfile();
         setUser(data.user);
         setImageUrl(data.user.image || "/images/avatar.jpg");
       } catch (error) {
         console.error("Error fetching profile:", error);
+        toast.error("Couldn't load your profile");
       }
     };
     fetchProfile();
@@ -40,27 +28,14 @@ export default function Profile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("attachment", file);
-
     try {
       setLoading(true);
-      const { data } = await axios.post(
-        `${VITE_API_URL}/api/v1/users/uploadProfile`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `bearer ${localStorage.getItem("accessToken")}`,
-          },
-        }
-      );
+      const data = await uploadProfileImage(file);
       if (data?.user?.image) {
-        setImageUrl(`${data.user.image}?t=${Date.now()}`); 
+        setImageUrl(`${data.user.image}?t=${Date.now()}`);
       }
     } catch (error) {
-      toast.error ("failed in uploading" )
-      
+      toast.error("Failed to upload image");
     } finally {
       setLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -70,9 +45,11 @@ export default function Profile() {
   const handleButtonClick = () => fileInputRef.current?.click();
 
   if (!user)
-    return <div className="flex justify-center items-center h-full min-h-[200px]">
+    return (
+      <div className="flex justify-center items-center h-full min-h-[200px]">
         <ClipLoader size={50} color="#fbbf24" />
       </div>
+    );
 
   const joinedDate = new Date(user.createdAt).toLocaleDateString("en-US", {
     year: "numeric",
@@ -81,9 +58,8 @@ export default function Profile() {
   });
 
   return (
-    <div className="flex justify-center p-6 bg-gray-900">
-      <div className="w-full max-w-4xl md:ml-44 lg:ml-64 flex flex-col md:flex-row items-center md:items-start bg-gray-800 rounded-3xl shadow-xl border border-amber-500 p-8 gap-6">
-        
+    <div className="flex min-h-screen justify-center bg-gray-950 p-4 text-white sm:p-6 lg:p-8">
+      <div className="flex w-full max-w-4xl flex-col items-center gap-6 rounded-2xl border border-white/10 bg-gray-900 p-5 shadow-xl shadow-black/20 sm:p-8 md:flex-row md:items-start">
         <div className="flex flex-col items-center md:w-1/3 border-b md:border-b-0 md:border-r border-amber-500 pb-6 md:pb-0 md:pr-6">
           <img
             src={imageUrl}
@@ -101,14 +77,14 @@ export default function Profile() {
           />
           <button
             onClick={handleButtonClick}
-            className="mt-3 flex items-center gap-2 text-gray-900 bg-amber-400 hover:bg-amber-500 font-semibold px-4 py-2 rounded-full shadow transition"
+            className="mt-3 flex items-center gap-2 rounded-lg bg-amber-400 px-4 py-2 font-semibold text-gray-900 shadow transition hover:bg-amber-500"
             disabled={loading}
           >
             {loading ? "Uploading..." : "Change Profile"}
           </button>
         </div>
 
-        <div className="md:w-2/3 space-y-6 w-full mt-6 md:mt-0">
+        <div className="mt-6 w-full space-y-4 md:mt-0 md:w-2/3">
           <InfoItem icon={<Mail size={18} />} text={user.email} />
           <InfoItem icon={<Phone size={18} />} text={user.phone} />
           <InfoItem icon={<span className="font-semibold">NID:</span>} text={user.nid} />
@@ -121,9 +97,9 @@ export default function Profile() {
 
 function InfoItem({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
-    <div className="flex items-center gap-3 bg-gray-700 text-white rounded-lg p-3 shadow hover:shadow-lg transition">
+    <div className="flex items-center gap-3 rounded-lg bg-gray-800 p-3 text-white shadow transition hover:shadow-lg">
       <div className="text-amber-400">{icon}</div>
-      <p className="text-sm font-medium">{text}</p>
+      <p className="break-all text-sm font-medium">{text}</p>
     </div>
   );
 }

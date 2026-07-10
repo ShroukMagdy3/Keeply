@@ -35,7 +35,7 @@ export default function StepsProgress() {
         3
       </div>
       <Link
-        to={"/signin"}
+        to={"/signIn"}
         className="mt-2 text-sm text-gray-500 hover:text-white transition-colors font-medium"
       >
         Sign In

@@ -4,10 +4,8 @@ import AuthLayout from "../../layout/authLayout/authLayout";
 import type { confirmFormData } from "./confirm.interface";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import axios from "axios";
+import { confirmEmail } from "../../api/auth";
 import confirmValidation from "./confirmValidation";
-
-const VITE_API_URL = import.meta.env.VITE_API_URL;
 
 export default function ConfirmForm() {
   const [inputs, setInput] = useState<confirmFormData>({
@@ -34,13 +32,12 @@ export default function ConfirmForm() {
     setErrors(validationErrors);
     
     if (isValid) {
-      axios
-        .post(`${VITE_API_URL}/api/v1/users/confirmEmail`, inputs)
-        .then((res) => {
-          if (res.data.message === "Confirmed") {
+      confirmEmail(inputs)
+        .then((data) => {
+          if (data.message === "Confirmed") {
             toast.success("Account Confirmed!");
             setTimeout(() => {
-              navigate("/signin");
+              navigate("/signIn");
             }, 2000);
           }
         })

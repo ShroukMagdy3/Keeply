@@ -11,7 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const token = localStorage.getItem("accessToken");
   if (!token) {
      toast.error("You must log in first!");
-    return <Navigate to="/signin" replace />; 
+    return <Navigate to="/signIn" replace />; 
   }
 
   return children;
