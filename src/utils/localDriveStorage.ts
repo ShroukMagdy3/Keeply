@@ -43,53 +43,9 @@ const writeJSON = <T>(key: string, value: T) => {
 
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
-const seedDefaultData = () => {
-  const workspaces = readJSON<PersistedWorkspace[] | null>(WORKSPACE_KEY, null);
-  if (!workspaces || workspaces.length === 0) {
-    const starterWorkspace: PersistedWorkspace = {
-      _id: createId(),
-      name: "My Drive",
-      userNID: "local-user",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      documents: [],
-      itemsCount: 0,
-    };
-    writeJSON(WORKSPACE_KEY, [starterWorkspace]);
-  }
 
-  const documents = readJSON<PersistedDriveItem[] | null>(DOCUMENT_KEY, null);
-  if (!documents || documents.length === 0) {
-    const workspaceId = readJSON<PersistedWorkspace[]>(WORKSPACE_KEY, [])[0]?._id;
-    const starterDocs: PersistedDriveItem[] = [];
-    if (workspaceId) {
-      starterDocs.push({
-        _id: createId(),
-        name: "Product launch plan",
-        type: "file",
-        parentId: null,
-        workspaceId,
-        resourceType: "pdf",
-        mimeType: "application/pdf",
-        secureUrl: "/images/default.jpg",
-        previewUrl: "/images/default.jpg",
-        createdAt: new Date().toISOString(),
-      });
-      starterDocs.push({
-        _id: createId(),
-        name: "Design assets",
-        type: "folder",
-        parentId: null,
-        workspaceId,
-        createdAt: new Date().toISOString(),
-      });
-    }
-    writeJSON(DOCUMENT_KEY, starterDocs);
-  }
-};
 
 export const getPersistedWorkspaces = (): PersistedWorkspace[] => {
-  seedDefaultData();
   return readJSON<PersistedWorkspace[]>(WORKSPACE_KEY, []);
 };
 
@@ -98,7 +54,6 @@ export const savePersistedWorkspaces = (workspaces: PersistedWorkspace[]) => {
 };
 
 export const getPersistedDocuments = (): PersistedDriveItem[] => {
-  seedDefaultData();
   return readJSON<PersistedDriveItem[]>(DOCUMENT_KEY, []);
 };
 

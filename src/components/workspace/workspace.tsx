@@ -35,11 +35,11 @@ export default function WorkspaceProfile() {
     setLoading(true);
     try {
       const data = await listWorkspaces();
-      setWorkspaces(data.workspaces);
+      setWorkspaces(data?.workspaces!);
 
       const remembered = preferId || localStorage.getItem(LAST_WORKSPACE_KEY);
-      const stillExists = data.workspaces.find((w) => w._id === remembered);
-      const next = stillExists ? remembered! : data.workspaces[0]?._id ?? null;
+      const stillExists = data?.workspaces.find((w) => w._id === remembered);
+      const next = stillExists ? remembered! : data?.workspaces[0]?._id ?? null;
 
       setSelectedId(next);
       if (next) localStorage.setItem(LAST_WORKSPACE_KEY, next);
@@ -79,10 +79,10 @@ export default function WorkspaceProfile() {
     setCreating(true);
     try {
       const data = await createWorkspace(name);
-      toast.success(`"${data.workspace.name}" created`);
+      toast.success(`"${data?.workspace.name}" created`);
       setShowCreateModal(false);
       setWorkspaceName("");
-      await loadWorkspaces(data.workspace._id);
+      await loadWorkspaces(data?.workspace._id);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Couldn't create that workspace");
     } finally {
