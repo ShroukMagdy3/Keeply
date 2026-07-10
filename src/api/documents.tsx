@@ -78,21 +78,25 @@ export const uploadFileGeneric = async (
   parentId?: string | null,
   workspaceId?: string | null
 ) => {
+  const form = new FormData();
+  form.append("file", file);
+
+  if (parentId) form.append("parentId", parentId);
+  if (workspaceId) form.append("workspaceId", workspaceId);
+
   try {
-    const form = new FormData();
-    form.append("file", file);
-    if (parentId) form.append("parentId", parentId);
-    if (workspaceId) form.append("workspaceId", workspaceId);
     const { data } = await api.post(`${DOCS_URL}/uploadFile`, form, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
+
     return data;
-  } catch {
-    const document = await createPersistedDocument(workspaceId ?? "", file.name, "file", parentId ?? null, file);
-    return { message: "Saved locally", document };
+  } catch (error) {
+    console.error("Upload failed:", error);
+    throw error;
   }
 };
-
 export const uploadFolderBulk = async (
   files: FileList | File[],
   parentId?: string | null,
@@ -101,37 +105,46 @@ export const uploadFolderBulk = async (
 ) => {
   const fileArray = Array.from(files);
   const totalFiles = fileArray.length;
+
+  onStatus?.(`Preparing ${totalFiles} files...`);
+
+  const form = new FormData();
+  const paths: string[] = [];
+
+  fileArray.forEach((file) => {
+    form.append("files", file);
+    paths.push((file as any).webkitRelativePath || file.name);
+  });
+
+  form.append("paths", JSON.stringify(paths));
+
+  if (parentId) form.append("parentId", parentId);
+  if (workspaceId) form.append("workspaceId", workspaceId);
+
   try {
-    onStatus?.(`Preparing ${totalFiles} files...`);
-    const form = new FormData();
-    const paths: string[] = [];
-    fileArray.forEach((file) => {
-      form.append("files", file);
-      paths.push((file as any).webkitRelativePath || file.name);
-    });
-    form.append("paths", JSON.stringify(paths));
-    if (parentId) form.append("parentId", parentId);
-    if (workspaceId) form.append("workspaceId", workspaceId);
     const { data } = await api.post(`${DOCS_URL}/uploadFolder`, form, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
       onUploadProgress: (event) => {
         if (!event.total) {
           onStatus?.(`Uploading ${totalFiles} files...`);
           return;
         }
-        const percent = Math.min(100, Math.round((event.loaded * 100) / event.total));
+
+        const percent = Math.min(
+          100,
+          Math.round((event.loaded * 100) / event.total)
+        );
+
         onStatus?.(`Uploading ${totalFiles} files... ${percent}%`);
       },
     });
+
     return data;
-  } catch {
-    onStatus?.("Backend upload failed. Saving files in this browser...");
-    const created = [];
-    for (const [index, file] of fileArray.entries()) {
-      onStatus?.(`Saving locally ${index + 1}/${totalFiles}: ${file.name}`);
-      created.push(await createPersistedDocument(workspaceId ?? "", file.name, "file", parentId ?? null, file as File));
-    }
-    return { message: "Saved locally", uploaded: created.length, documents: created };
+  } catch (error) {
+    console.error("Folder upload failed:", error);
+    throw error;
   }
 };
 
